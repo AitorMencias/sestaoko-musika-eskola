@@ -568,65 +568,66 @@ textarea {
   overflow-y: auto;
 }
 
+/* ── Fila de canción en el selector de listas ── */
 .song-picker-item {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 14px;
-  padding: 15px 18px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
-  transition: background 0.1s;
   user-select: none;
+  transition: background 0.1s;
 }
 .song-picker-item:last-child { border-bottom: none; }
 .song-picker-item:hover { background: var(--bg-elevated); }
 
-/* Input real oculto — el estado lo gestiona React */
+/* El input real se oculta; el estado lo gestiona React */
 .song-picker-item input[type="checkbox"] {
   position: absolute;
+  width: 1px;
+  height: 1px;
   opacity: 0;
-  width: 0;
-  height: 0;
   pointer-events: none;
 }
 
-/* Checkbox visual (span) */
+/* Checkbox visual: cuadrado con bordes redondeados */
 .custom-checkbox {
+  display: inline-grid;
+  place-items: center;
   width: 24px;
-  min-width: 24px;
   height: 24px;
+  flex: 0 0 24px;
   border: 2px solid var(--border);
   border-radius: 6px;
   background: var(--bg);
-  flex-shrink: 0;
-  align-self: center;
-  line-height: 20px;
-  text-align: center;
   font-size: 15px;
   font-weight: 700;
+  line-height: 1;
+  color: transparent;
   transition: background 0.15s, border-color 0.15s;
+}
+.custom-checkbox::before { content: '✓'; }
+
+/* Espacio entre el checkbox y el texto */
+.song-picker-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 14px;
+  font-size: 16px;
+  line-height: 1.4;
 }
 
 .song-picker-item input[type="checkbox"]:checked + .custom-checkbox {
   background: var(--accent);
   border-color: var(--accent);
-}
-
-.song-picker-item input[type="checkbox"]:checked + .custom-checkbox::after {
-  content: '✓';
-  color: white;
-}
-
-.song-picker-text {
-  flex: 1;
-  font-size: 16px;
-  line-height: 1.4;
+  color: #fff;
 }
 
 .song-picker-num {
   font-weight: 700;
   color: var(--text-muted);
-  margin-right: 8px;
+  margin-right: 6px;
 }
 
 .song-picker-search {

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fondo redondeado azul -->
+  <rect width="512" height="512" rx="96" fill="#1d4ed8"/>
+
+  <!-- Corista izquierda (ligeramente transparente) -->
+  <circle cx="126" cy="188" r="48" fill="white" opacity="0.82"/>
+  <path d="M68 436 C68 294 184 294 184 436Z" fill="white" opacity="0.82"/>
+
+  <!-- Corista central (protagonista) -->
+  <circle cx="256" cy="160" r="58" fill="white"/>
+  <path d="M190 436 C190 278 322 278 322 436Z" fill="white"/>
+
+  <!-- Corista derecha (ligeramente transparente) -->
+  <circle cx="386" cy="188" r="48" fill="white" opacity="0.82"/>
+  <path d="M328 436 C328 294 444 294 444 436Z" fill="white" opacity="0.82"/>
+
+  <!-- Nota musical pequeña (esquina superior derecha) -->
+  <circle cx="446" cy="94" r="20" fill="white" opacity="0.6"/>
+  <rect x="462" y="52" width="10" height="48" rx="5" fill="white" opacity="0.6"/>
+  <path d="M462 52 Q500 66 500 90 Q500 70 462 62Z" fill="white" opacity="0.6"/>
+</svg>

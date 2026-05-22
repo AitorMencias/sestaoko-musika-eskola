@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { saveSetlist } from '../../services/firestore'
 
 export default function SetlistForm({ setlist, songs, onCancel, onSaved }) {
@@ -6,9 +6,16 @@ export default function SetlistForm({ setlist, songs, onCancel, onSaved }) {
   const [title, setTitle] = useState(setlist?.title || '')
   const [date, setDate] = useState(setlist?.date || '')
   const [selectedIds, setSelectedIds] = useState(setlist?.songIds || [])
+  const [pickerSearch, setPickerSearch] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const songsById = Object.fromEntries(songs.map(s => [s.id, s]))
+  const songsById = useMemo(() => Object.fromEntries(songs.map(s => [s.id, s])), [songs])
+
+  const filteredSongs = useMemo(() => {
+    const q = pickerSearch.toLowerCase().trim()
+    if (!q) return songs
+    return songs.filter(s => s.title.toLowerCase().includes(q))
+  }, [songs, pickerSearch])
 
   function toggleSong(id) {
     setSelectedIds(prev =>
@@ -75,24 +82,46 @@ export default function SetlistForm({ setlist, songs, onCancel, onSaved }) {
         </div>
 
         <div className="form-group">
-          <label>Canciones incluidas</label>
+          <label>
+            Canciones incluidas
+            {selectedIds.length > 0 && (
+              <span style={{ fontWeight: 400, marginLeft: 8, color: 'var(--accent)' }}>
+                ({selectedIds.length} seleccionadas)
+              </span>
+            )}
+          </label>
           <div className="song-picker">
-            {songs.map(s => (
-              <label key={s.id} className="song-picker-item">
-                <input
-                  type="checkbox"
-                  checked={selectedIds.includes(s.id)}
-                  onChange={() => toggleSong(s.id)}
-                />
-                <span>{s.index}. {s.title}</span>
-              </label>
-            ))}
+            <div className="song-picker-search">
+              <input
+                type="search"
+                placeholder="Buscar canción..."
+                value={pickerSearch}
+                onChange={e => setPickerSearch(e.target.value)}
+                aria-label="Buscar canción para añadir a la lista"
+              />
+            </div>
+            {filteredSongs.length === 0 ? (
+              <div style={{ padding: '16px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                No se encontraron canciones
+              </div>
+            ) : (
+              filteredSongs.map(s => (
+                <label key={s.id} className="song-picker-item">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(s.id)}
+                    onChange={() => toggleSong(s.id)}
+                  />
+                  <span>{s.index}. {s.title}</span>
+                </label>
+              ))
+            )}
           </div>
         </div>
 
         {selectedIds.length > 0 && (
           <div className="form-group">
-            <label>Orden en la lista ({selectedIds.length} canciones)</label>
+            <label>Orden en la lista</label>
             <div>
               {selectedIds.map((id, i) => (
                 <div key={id} className="setlist-song-row">

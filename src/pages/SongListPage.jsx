@@ -10,6 +10,7 @@ export default function SongListPage() {
   const { setlists } = useSetlists()
   const [activeSetlistId, setActiveSetlistId] = useState(null)
   const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState('index') // 'index' | 'alpha'
 
   const visibleSongs = useMemo(() => {
     const activeSetlist = setlists.find(sl => sl.id === activeSetlistId)
@@ -24,12 +25,13 @@ export default function SongListPage() {
         return true
       })
       .sort((a, b) => {
+        if (sortBy === 'alpha') return a.title.localeCompare(b.title, 'eu')
         if (activeSetlist?.songIds) {
           return activeSetlist.songIds.indexOf(a.id) - activeSetlist.songIds.indexOf(b.id)
         }
         return a.index - b.index
       })
-  }, [songs, setlists, activeSetlistId, search])
+  }, [songs, setlists, activeSetlistId, search, sortBy])
 
   return (
     <div className="page">
@@ -51,6 +53,25 @@ export default function SongListPage() {
             onChange={e => setSearch(e.target.value)}
             aria-label="Buscar canción por título o letra"
           />
+        </div>
+
+        <div className="list-toolbar">
+          <div className="sort-toggle" role="group" aria-label="Ordenar canciones">
+            <button
+              className={sortBy === 'index' ? 'active' : ''}
+              onClick={() => setSortBy('index')}
+              aria-pressed={sortBy === 'index'}
+            >
+              # Índice
+            </button>
+            <button
+              className={sortBy === 'alpha' ? 'active' : ''}
+              onClick={() => setSortBy('alpha')}
+              aria-pressed={sortBy === 'alpha'}
+            >
+              A-Z
+            </button>
+          </div>
         </div>
 
         {loading ? (

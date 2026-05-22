@@ -28,7 +28,7 @@ export default function SongViewPage() {
 
   return (
     <div className="page">
-      <Header showBack title={song.title} />
+      <Header showBack showFontControls title={song.title} />
       <main className="page-content">
         <h1 className="song-view-title">{song.title}</h1>
         <LyricsDisplay lyrics={song.lyrics} />

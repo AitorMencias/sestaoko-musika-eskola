@@ -571,7 +571,7 @@ textarea {
 .song-picker-item {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
   padding: 15px 18px;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
@@ -581,36 +581,40 @@ textarea {
 .song-picker-item:last-child { border-bottom: none; }
 .song-picker-item:hover { background: var(--bg-elevated); }
 
-/* Checkbox personalizado */
+/* Input real oculto — el estado lo gestiona React */
 .song-picker-item input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Checkbox visual (span) */
+.custom-checkbox {
   width: 24px;
   min-width: 24px;
   height: 24px;
   border: 2px solid var(--border);
   border-radius: 6px;
   background: var(--bg);
-  cursor: pointer;
   flex-shrink: 0;
-  align-self: center;
-  transition: background 0.15s, border-color 0.15s;
   position: relative;
-  display: block;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.song-picker-item input[type="checkbox"]:checked {
+.song-picker-item input[type="checkbox"]:checked + .custom-checkbox {
   background: var(--accent);
   border-color: var(--accent);
 }
 
-.song-picker-item input[type="checkbox"]:checked::after {
+.song-picker-item input[type="checkbox"]:checked + .custom-checkbox::after {
   content: '';
   position: absolute;
-  left: 6px;
-  top: 2px;
-  width: 8px;
-  height: 13px;
+  left: 7px;
+  top: 3px;
+  width: 7px;
+  height: 12px;
   border: 2.5px solid white;
   border-top: none;
   border-left: none;

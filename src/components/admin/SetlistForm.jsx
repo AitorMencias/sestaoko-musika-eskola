@@ -112,7 +112,8 @@ export default function SetlistForm({ setlist, songs, onCancel, onSaved }) {
                     checked={selectedIds.includes(s.id)}
                     onChange={() => toggleSong(s.id)}
                   />
-                  <span>{s.index}. {s.title}</span>
+                  <span className="song-picker-num">{s.index}</span>
+                  <span className="song-picker-title">{s.title}</span>
                 </label>
               ))
             )}

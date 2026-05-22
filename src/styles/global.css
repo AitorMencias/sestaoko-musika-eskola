@@ -571,8 +571,8 @@ textarea {
 .song-picker-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 18px;
+  gap: 20px;
+  padding: 15px 18px;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.1s;
@@ -581,13 +581,52 @@ textarea {
 .song-picker-item:last-child { border-bottom: none; }
 .song-picker-item:hover { background: var(--bg-elevated); }
 
+/* Checkbox personalizado */
 .song-picker-item input[type="checkbox"] {
-  width: 22px;
-  height: 22px;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
   cursor: pointer;
   flex-shrink: 0;
-  accent-color: var(--accent);
-  border-radius: 4px;
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+}
+
+.song-picker-item input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.song-picker-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 8px;
+  height: 13px;
+  border: 2.5px solid white;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.song-picker-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.song-picker-title {
+  flex: 1;
+  font-size: 16px;
+  line-height: 1.4;
 }
 
 .song-picker-search {

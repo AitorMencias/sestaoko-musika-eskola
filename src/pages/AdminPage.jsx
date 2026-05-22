@@ -7,11 +7,14 @@ import { useSetlists } from '../hooks/useSetlists'
 import { deleteSong, deleteSetlist } from '../services/firestore'
 import SongForm from '../components/admin/SongForm'
 import SetlistForm from '../components/admin/SetlistForm'
+import HelpModal from '../components/HelpModal'
+import guiaAdmin from '../../GUIA-ADMIN.md?raw'
 
 export default function AdminPage() {
   const [tab, setTab] = useState('songs')
-  const [editingSong, setEditingSong] = useState(null)    // null | 'new' | {song}
-  const [editingSetlist, setEditingSetlist] = useState(null) // null | 'new' | {setlist}
+  const [editingSong, setEditingSong] = useState(null)
+  const [editingSetlist, setEditingSetlist] = useState(null)
+  const [showHelp, setShowHelp] = useState(false)
   const { songs, loading: songsLoading } = useSongs()
   const { setlists, loading: setlistsLoading } = useSetlists()
   const navigate = useNavigate()
@@ -42,10 +45,29 @@ export default function AdminPage() {
       {/* Cabecera */}
       <div className="admin-header">
         <span className="admin-header-title">Admin · Sestaoko Musika Eskola</span>
-        <button className="btn btn-secondary btn-sm" onClick={handleLogout}>
-          Cerrar sesión
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button
+            className="icon-btn"
+            onClick={() => setShowHelp(true)}
+            aria-label="Abrir guía de administración"
+            title="Ayuda"
+            style={{ fontWeight: 700, fontSize: 17 }}
+          >
+            ?
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={handleLogout}>
+            Cerrar sesión
+          </button>
+        </div>
       </div>
+
+      {showHelp && (
+        <HelpModal
+          content={guiaAdmin}
+          title="Guía de administración"
+          onClose={() => setShowHelp(false)}
+        />
+      )}
 
       {/* Tabs */}
       <div className="admin-tabs">

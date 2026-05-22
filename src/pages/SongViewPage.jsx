@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import Header from '../components/Header'
+import guiaUsuario from '../../GUIA-USUARIO.md?raw'
 import LyricsDisplay from '../components/LyricsDisplay'
 import YouTubeEmbed from '../components/YouTubeEmbed'
 
@@ -28,7 +29,7 @@ export default function SongViewPage() {
 
   return (
     <div className="page">
-      <Header showBack showFontControls title={song.title} />
+      <Header showBack showFontControls helpContent={guiaUsuario} helpTitle="Guía de uso" title={song.title} />
       <main className="page-content">
         <h1 className="song-view-title">{song.title}</h1>
         <LyricsDisplay lyrics={song.lyrics} />

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import Header from '../components/Header'
+import guiaUsuario from '../../GUIA-USUARIO.md?raw'
 import SongCard from '../components/SongCard'
 import SetlistSelector from '../components/SetlistSelector'
 import { useSongs } from '../hooks/useSongs'
@@ -35,7 +36,7 @@ export default function SongListPage() {
 
   return (
     <div className="page">
-      <Header />
+      <Header helpContent={guiaUsuario} helpTitle="Guía de uso" />
       <main className="page-content">
         <SetlistSelector
           setlists={setlists}

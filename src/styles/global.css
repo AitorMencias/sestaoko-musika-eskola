@@ -586,14 +586,17 @@ textarea {
   appearance: none;
   -webkit-appearance: none;
   width: 24px;
+  min-width: 24px;
   height: 24px;
   border: 2px solid var(--border);
   border-radius: 6px;
   background: var(--bg);
   cursor: pointer;
   flex-shrink: 0;
+  align-self: center;
   transition: background 0.15s, border-color 0.15s;
   position: relative;
+  display: block;
 }
 
 .song-picker-item input[type="checkbox"]:checked {
@@ -623,7 +626,7 @@ textarea {
 .song-picker-num {
   font-weight: 700;
   color: var(--text-muted);
-  margin-right: 6px;
+  margin-right: 8px;
 }
 
 .song-picker-search {

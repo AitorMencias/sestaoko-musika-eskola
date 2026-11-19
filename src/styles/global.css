@@ -990,7 +990,8 @@ textarea {
 .media-job progress { flex: 1 1 100%; width: 100%; accent-color: var(--accent); }
 .media-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .media-size { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
-.media-saved { color: #16a34a; font-weight: 600; }
+.media-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.media-note { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
 .media-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .media-total { font-size: 13px; color: var(--text-muted); }
 

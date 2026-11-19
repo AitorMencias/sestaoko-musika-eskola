@@ -36,7 +36,7 @@ Todo funciona gratis y sin tarjeta. Firestore y Auth usan el plan gratuito Spark
 
 ### Compresión de archivos
 
-Al subir un archivo, el navegador del admin lo recomprime antes de enviarlo (`src/services/media.js`):
+**Desactivada por defecto**: con los 15 GB de Drive se suben los archivos originales. Se puede activar por tipo con `COMPRESS_AUDIO` / `COMPRESS_VIDEO` en `src/services/media.js`. Si un archivo supera el límite de 200 MB, se comprime siempre, aunque la compresión esté desactivada. Activada, el navegador del admin recomprime así antes de enviar:
 
 - **Audio** → MP3 a 96 kbps
 - **Vídeo** → MP4 (H.264 + AAC), lado corto máx. 720 px, ~1,2 Mbps

@@ -1,7 +1,15 @@
 import { useRef, useState } from 'react'
 import {
-  compressMedia, uploadMedia, mediaKind, formatBytes, MAX_UPLOAD_BYTES,
+  compressMedia, compressionReason, uploadMedia, mediaKind, formatBytes, MAX_UPLOAD_BYTES,
 } from '../../services/media'
+
+function compressionNote(m) {
+  if (!(m.originalSize > m.size)) return null
+  const change = `Comprimido de ${formatBytes(m.originalSize)} a ${formatBytes(m.size)}`
+  return m.compressedReason === 'limit'
+    ? `${change} porque el original superaba el límite de ${formatBytes(MAX_UPLOAD_BYTES)} por archivo`
+    : `${change} para ahorrar espacio`
+}
 
 /**
  * Lista de archivos de audio/vídeo de una canción.
@@ -20,15 +28,28 @@ export default function MediaUploader({ media, onAdd, onRemove, onBusyChange }) 
 
   async function processFile(file) {
     const id = `${Date.now()}-${Math.random()}`
-    setJobs(js => [...js, { id, name: file.name, stage: 'compress', progress: 0, originalSize: file.size }])
+    const reason = compressionReason(file)
+    setJobs(js => [...js, {
+      id, name: file.name, stage: reason ? 'compress' : 'upload', reason, progress: 0, originalSize: file.size,
+    }])
     try {
-      const result = await compressMedia(file, p => patchJob(id, { progress: p }))
+      const result = reason
+        ? await compressMedia(file, p => patchJob(id, { progress: p }))
+        : { blob: file, name: file.name, contentType: file.type, compressed: false }
       if (result.blob.size > MAX_UPLOAD_BYTES) {
-        throw new Error(`Ocupa ${formatBytes(result.blob.size)} incluso comprimido (máx. ${formatBytes(MAX_UPLOAD_BYTES)})`)
+        throw new Error(
+          result.compressed
+            ? `Incluso comprimido ocupa ${formatBytes(result.blob.size)} y el máximo es ${formatBytes(MAX_UPLOAD_BYTES)}. Recórtalo en partes más cortas antes de subirlo.`
+            : `Ocupa ${formatBytes(result.blob.size)} y el máximo es ${formatBytes(MAX_UPLOAD_BYTES)}. Este navegador no ha podido comprimirlo: recórtalo o prueba desde otro navegador (Chrome o Edge).`
+        )
       }
       patchJob(id, { stage: 'upload', progress: 0 })
       const item = await uploadMedia(result, p => patchJob(id, { progress: p }))
-      onAdd({ ...item, originalSize: file.size })
+      onAdd({
+        ...item,
+        originalSize: file.size,
+        ...(result.compressed && reason ? { compressedReason: reason } : {}),
+      })
       setJobs(js => js.filter(j => j.id !== id))
     } catch (err) {
       console.error(err)
@@ -55,13 +76,11 @@ export default function MediaUploader({ media, onAdd, onRemove, onBusyChange }) 
           {media.map(m => (
             <li key={m.path} className="media-item">
               <span className="media-icon" aria-hidden>{m.kind === 'video' ? '🎬' : '🎵'}</span>
-              <span className="media-name" title={m.name}>{m.name}</span>
-              <span className="media-size">
-                {formatBytes(m.size)}
-                {m.originalSize > m.size && (
-                  <> · <span className="media-saved">−{Math.round((1 - m.size / m.originalSize) * 100)} %</span></>
-                )}
+              <span className="media-info">
+                <span className="media-name" title={m.name}>{m.name}</span>
+                {compressionNote(m) && <span className="media-note">{compressionNote(m)}</span>}
               </span>
+              <span className="media-size">{formatBytes(m.size)}</span>
               <button type="button" className="btn btn-danger btn-sm" onClick={() => onRemove(m)}>
                 Quitar
               </button>
@@ -75,7 +94,9 @@ export default function MediaUploader({ media, onAdd, onRemove, onBusyChange }) 
           <div className="media-job-label">
             <span className="media-name">{j.name}</span>
             <span>
-              {j.stage === 'compress' && `Comprimiendo… ${Math.round(j.progress * 100)} %`}
+              {j.stage === 'compress' && (j.reason === 'limit'
+                ? `Supera los ${formatBytes(MAX_UPLOAD_BYTES)} permitidos, comprimiendo para que quepa… ${Math.round(j.progress * 100)} %`
+                : `Comprimiendo… ${Math.round(j.progress * 100)} %`)}
               {j.stage === 'upload' && `Subiendo… ${Math.round(j.progress * 100)} %`}
               {j.stage === 'error' && j.error}
             </span>

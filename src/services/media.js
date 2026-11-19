@@ -1,6 +1,9 @@
 import { auth } from '../firebase'
 
 // ── Ajustes de compresión ──────────────────────────────────
+// Desactivada: con los 15 GB de Drive sobra espacio. Poner a true para volver a comprimir.
+const COMPRESS_AUDIO = false
+const COMPRESS_VIDEO = false
 // Audio: MP3 a 96 kbps (de sobra para ensayar; un MP3 típico de 128-320 kbps baja un 25-70 %)
 // Vídeo: MP4 H.264, lado corto máx. 720 px, ~1,2 Mbps + audio AAC 96 kbps
 const AUDIO_BITRATE = 96_000
@@ -20,6 +23,20 @@ export function formatBytes(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
+/**
+ * Indica si hay que comprimir un archivo y por qué:
+ * - 'preference': la compresión está activada para ese tipo
+ * - 'limit': está desactivada, pero el archivo supera MAX_UPLOAD_BYTES y se comprime igualmente
+ * - null: se sube el original
+ */
+export function compressionReason(file) {
+  const kind = mediaKind(file)
+  if (!kind) return null
+  if (kind === 'audio' ? COMPRESS_AUDIO : COMPRESS_VIDEO) return 'preference'
+  if (file.size > MAX_UPLOAD_BYTES) return 'limit'
+  return null
+}
+
 function replaceExt(name, ext) {
   const base = name.replace(/\.[^.]+$/, '')
   return `${base}.${ext}`
@@ -34,7 +51,7 @@ function replaceExt(name, ext) {
 export async function compressMedia(file, onProgress = () => {}) {
   const kind = mediaKind(file)
   const original = { blob: file, name: file.name, contentType: file.type, compressed: false }
-  if (!kind) return original
+  if (!compressionReason(file)) return original
 
   try {
     // Carga diferida: la librería solo se descarga cuando el admin sube algo
@@ -84,7 +101,9 @@ export async function compressMedia(file, onProgress = () => {}) {
     await conversion.execute()
 
     const buffer = output.target.buffer
-    if (!buffer || buffer.byteLength > file.size * 0.9) return original
+    // Si se comprime por superar el límite, vale cualquier reducción; si no, solo si ahorra ≥10 %
+    const minSaving = compressionReason(file) === 'limit' ? 1 : 0.9
+    if (!buffer || buffer.byteLength >= file.size * minSaving) return original
     return {
       blob: new Blob([buffer], { type: contentType }),
       name: replaceExt(file.name, ext),

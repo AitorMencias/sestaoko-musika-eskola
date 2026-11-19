@@ -9,6 +9,9 @@ import SongForm from '../components/admin/SongForm'
 import SetlistForm from '../components/admin/SetlistForm'
 import HelpModal from '../components/HelpModal'
 import guiaAdmin from '../../GUIA-ADMIN.md?raw'
+import { formatBytes } from '../services/media'
+
+const STORAGE_QUOTA = 5 * 1024 * 1024 * 1024 // 5 GB gratis en Firebase Storage
 
 export default function AdminPage() {
   const [tab, setTab] = useState('songs')
@@ -18,6 +21,9 @@ export default function AdminPage() {
   const { songs, loading: songsLoading } = useSongs()
   const { setlists, loading: setlistsLoading } = useSetlists()
   const navigate = useNavigate()
+  const storageUsed = songs.reduce(
+    (sum, s) => sum + (s.media || []).reduce((a, m) => a + (m.size || 0), 0), 0
+  )
 
   async function handleLogout() {
     await signOut(auth)
@@ -26,7 +32,7 @@ export default function AdminPage() {
 
   async function handleDeleteSong(song) {
     if (!window.confirm(`¿Eliminar la canción "${song.title}"?`)) return
-    await deleteSong(song.id)
+    await deleteSong(song)
   }
 
   async function handleDeleteSetlist(sl) {
@@ -97,7 +103,13 @@ export default function AdminPage() {
           ) : (
             <>
               <div className="admin-toolbar">
-                <h2>Canciones ({songs.length})</h2>
+                <div>
+                  <h2>Canciones ({songs.length})</h2>
+                  <div className="storage-usage" title="Espacio ocupado por audios y vídeos">
+                    Archivos: {formatBytes(storageUsed)} de {formatBytes(STORAGE_QUOTA)}
+                    <progress value={storageUsed} max={STORAGE_QUOTA} />
+                  </div>
+                </div>
                 <button className="btn btn-primary" onClick={() => setEditingSong('new')}>
                   + Nueva canción
                 </button>
@@ -115,6 +127,7 @@ export default function AdminPage() {
                         <th style={{ width: 56 }}>#</th>
                         <th>Título</th>
                         <th style={{ width: 80 }}>YouTube</th>
+                        <th style={{ width: 80 }}>Archivos</th>
                         <th style={{ width: 148 }}></th>
                       </tr>
                     </thead>
@@ -124,6 +137,7 @@ export default function AdminPage() {
                           <td>{song.index}</td>
                           <td>{song.title}</td>
                           <td>{song.youtubeUrl ? '✓' : '—'}</td>
+                          <td>{song.media?.length || '—'}</td>
                           <td>
                             <div className="table-actions">
                               <button

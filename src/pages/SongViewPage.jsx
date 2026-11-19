@@ -6,6 +6,7 @@ import Header from '../components/Header'
 import guiaUsuario from '../../GUIA-USUARIO.md?raw'
 import LyricsDisplay from '../components/LyricsDisplay'
 import YouTubeEmbed from '../components/YouTubeEmbed'
+import MediaPlayer from '../components/MediaPlayer'
 
 export default function SongViewPage() {
   const { id } = useParams()
@@ -33,6 +34,7 @@ export default function SongViewPage() {
       <main className="page-content">
         <h1 className="song-view-title">{song.title}</h1>
         <LyricsDisplay lyrics={song.lyrics} />
+        <MediaPlayer media={song.media} />
         {song.youtubeUrl && <YouTubeEmbed url={song.youtubeUrl} />}
       </main>
     </div>

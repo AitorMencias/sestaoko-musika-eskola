@@ -25,9 +25,28 @@ El dispositivo recordará el acceso, por lo que no necesitarás escribir la cont
    - **Título:** el nombre de la canción
    - **Letra:** escribe o pega aquí toda la letra
    - **URL de YouTube:** si la canción tiene un vídeo, pega aquí la dirección *(opcional)*
+   - **Archivos de audio / vídeo:** toca **+ Añadir audio o vídeo** para subir grabaciones *(opcional)*
 4. Toca **Guardar canción**
 
 > Si el número elegido ya lo tiene otra canción, la app preguntará si quieres desplazar las demás automáticamente. Toca **Sí, desplazar** para confirmar.
+
+### Importar desde Word o PDF
+
+En la pantalla de **Nueva canción**, arriba del todo, toca **📄 Importar desde Word o PDF** y elige el archivo. La app rellenará sola el **título** (la primera línea o el encabezado) y la **letra** (el resto).
+
+- Si el título empieza por un número (por ejemplo *12. Txoriak*), ese número se pone como índice.
+- **Revisa siempre el resultado** antes de guardar, sobre todo la separación entre estrofas.
+- Los archivos **.doc** antiguos no funcionan: ábrelos en Word y guárdalos como **.docx**.
+- Los PDF escaneados (fotos de papel) no tienen texto y no se pueden importar.
+
+### Subir audios y vídeos
+
+- Puedes subir varios archivos a la vez (MP3, M4A, WAV, MP4, MOV…).
+- Antes de subirse, **la app los comprime automáticamente** para ahorrar espacio. Verás el progreso: primero *Comprimiendo…* y luego *Subiendo…*.
+- Los vídeos pueden tardar un rato en comprimirse. **No cierres la pantalla** hasta que terminen. Es mejor hacerlo desde un ordenador.
+- Junto a cada archivo verás lo que ocupa y cuánto se ha ahorrado.
+- Para quitar un archivo, toca **Quitar** y después **Guardar canción**.
+- Encima de la tabla de canciones verás el espacio total usado (el máximo gratuito es 5 GB).
 
 ### Editar una canción
 
@@ -40,6 +59,8 @@ El dispositivo recordará el acceso, por lo que no necesitarás escribir la cont
 
 1. Toca **Borrar** en la fila de la canción
 2. Confirma en el mensaje que aparece
+
+Se borrarán también sus audios y vídeos.
 
 ---
 

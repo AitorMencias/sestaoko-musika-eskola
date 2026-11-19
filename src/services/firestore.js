@@ -5,6 +5,7 @@ import {
   writeBatch, serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { deleteMediaFiles } from './media'
 
 // ── Canciones ──────────────────────────────────────────────
 
@@ -41,6 +42,7 @@ export async function saveSong(data, id = null) {
     title: data.title,
     lyrics: data.lyrics,
     youtubeUrl: data.youtubeUrl || null,
+    media: data.media || [],
     updatedAt: serverTimestamp(),
   }
   if (id) {
@@ -50,8 +52,9 @@ export async function saveSong(data, id = null) {
   }
 }
 
-export async function deleteSong(id) {
-  await deleteDoc(doc(db, 'songs', id))
+export async function deleteSong(song) {
+  await deleteDoc(doc(db, 'songs', song.id))
+  if (song.media?.length) await deleteMediaFiles(song.media.map(m => m.path))
 }
 
 // ── Listas (setlists) ──────────────────────────────────────

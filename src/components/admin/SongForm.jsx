@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   getMaxSongIndex,
   checkIndexConflict,
@@ -6,6 +6,9 @@ import {
   saveSong,
 } from '../../services/firestore'
 import IndexConflictModal from './IndexConflictModal'
+import MediaUploader from './MediaUploader'
+import { deleteMediaFiles } from '../../services/media'
+import { importSongFile, IMPORT_ACCEPT } from '../../services/importSong'
 
 export default function SongForm({ song, onCancel, onSaved }) {
   const isNew = !song?.id
@@ -13,8 +16,55 @@ export default function SongForm({ song, onCancel, onSaved }) {
   const [title, setTitle] = useState(song?.title || '')
   const [lyrics, setLyrics] = useState(song?.lyrics || '')
   const [youtubeUrl, setYoutubeUrl] = useState(song?.youtubeUrl || '')
+  const [media, setMedia] = useState(song?.media || [])
+  const [uploading, setUploading] = useState(false)
+  // Archivos subidos en esta edición (se borran si se cancela) y quitados (se borran al guardar)
+  const [addedPaths, setAddedPaths] = useState([])
+  const [removedPaths, setRemovedPaths] = useState([])
   const [conflict, setConflict] = useState(null)
+  const importRef = useRef(null)
+  const [importState, setImportState] = useState(null) // { status: 'loading'|'ok'|'error', msg }
+
+  async function handleImport(e) {
+    const file = e.target.files[0]
+    e.target.value = ''
+    if (!file) return
+    if ((title.trim() || lyrics.trim()) &&
+        !window.confirm('Se sustituirán el título y la letra actuales. ¿Continuar?')) return
+    setImportState({ status: 'loading', msg: `Leyendo ${file.name}…` })
+    try {
+      const result = await importSongFile(file)
+      setTitle(result.title)
+      setLyrics(result.lyrics)
+      if (result.index) setIndex(String(result.index))
+      setImportState({
+        status: result.lyrics ? 'ok' : 'error',
+        msg: result.lyrics
+          ? `Importado de ${file.name}. Revisa el título y la letra antes de guardar.`
+          : `No se ha encontrado letra en ${file.name}.`,
+      })
+    } catch (err) {
+      console.error(err)
+      setImportState({ status: 'error', msg: err.message || 'No se pudo leer el archivo' })
+    }
+  }
   const [saving, setSaving] = useState(false)
+
+  function handleAddMedia(item) {
+    setMedia(m => [...m, item])
+    setAddedPaths(p => [...p, item.path])
+  }
+
+  function handleRemoveMedia(item) {
+    setMedia(m => m.filter(x => x.path !== item.path))
+    setRemovedPaths(p => [...p, item.path])
+  }
+
+  async function handleCancel() {
+    if (uploading && !window.confirm('Hay archivos subiéndose. ¿Salir igualmente?')) return
+    if (addedPaths.length) await deleteMediaFiles(addedPaths)
+    onCancel()
+  }
 
   useEffect(() => {
     if (isNew) {
@@ -45,9 +95,11 @@ export default function SongForm({ song, onCancel, onSaved }) {
           title: title.trim(),
           lyrics: lyrics.trim(),
           youtubeUrl: youtubeUrl.trim(),
+          media,
         },
         song?.id
       )
+      if (removedPaths.length) await deleteMediaFiles(removedPaths)
       onSaved()
     } finally {
       setSaving(false)
@@ -70,6 +122,25 @@ export default function SongForm({ song, onCancel, onSaved }) {
     <>
       <div className="form-card">
         <h3>{isNew ? 'Nueva canción' : `Editando: ${song.title}`}</h3>
+        {isNew && (
+          <div className="import-box">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => importRef.current?.click()}
+              disabled={importState?.status === 'loading'}
+            >
+              📄 Importar desde Word o PDF
+            </button>
+            <span className="import-hint">Rellena el título y la letra automáticamente</span>
+            <input ref={importRef} type="file" accept={IMPORT_ACCEPT} hidden onChange={handleImport} />
+            {importState && (
+              <div className={`import-status is-${importState.status}`} role="status">
+                {importState.msg}
+              </div>
+            )}
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
@@ -119,12 +190,22 @@ export default function SongForm({ song, onCancel, onSaved }) {
             />
           </div>
 
+          <div className="form-group">
+            <label>Archivos de audio / vídeo (opcional)</label>
+            <MediaUploader
+              media={media}
+              onAdd={handleAddMedia}
+              onRemove={handleRemoveMedia}
+              onBusyChange={setUploading}
+            />
+          </div>
+
           <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={saving}>
+            <button type="button" className="btn btn-secondary" onClick={handleCancel} disabled={saving}>
               Cancelar
             </button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Guardando...' : 'Guardar canción'}
+            <button type="submit" className="btn btn-primary" disabled={saving || uploading}>
+              {saving ? 'Guardando...' : uploading ? 'Esperando archivos...' : 'Guardar canción'}
             </button>
           </div>
         </form>

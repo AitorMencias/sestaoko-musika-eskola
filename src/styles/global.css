@@ -930,3 +930,86 @@ textarea {
     padding: 32px 20px;
   }
 }
+
+/* ============================
+   Audio / vídeo subidos
+   ============================ */
+.media-player {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.media-player-item { margin: 0; }
+.media-player-item figcaption {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.media-player audio { width: 100%; display: block; }
+.media-player video {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius);
+  background: #000;
+  max-height: 70vh;
+}
+
+.media-uploader { display: flex; flex-direction: column; gap: 10px; }
+.media-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.media-item, .media-job {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.media-job { flex-wrap: wrap; }
+.media-job.is-error { border-color: var(--danger); color: var(--danger); }
+.media-job-label {
+  flex: 1 1 200px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  min-width: 0;
+}
+.media-job progress { flex: 1 1 100%; width: 100%; accent-color: var(--accent); }
+.media-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.media-size { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+.media-saved { color: #16a34a; font-weight: 600; }
+.media-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.media-total { font-size: 13px; color: var(--text-muted); }
+
+.storage-usage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.storage-usage progress { width: 100px; accent-color: var(--accent); }
+
+/* ============================
+   Importar desde Word / PDF
+   ============================ */
+.import-box {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.import-hint { font-size: 14px; color: var(--text-muted); }
+.import-status { flex-basis: 100%; font-size: 14px; }
+.import-status.is-loading { color: var(--text-muted); }
+.import-status.is-ok { color: #16a34a; }
+.import-status.is-error { color: var(--danger); }

@@ -28,11 +28,11 @@ Permite a los integrantes del coro consultar letras de canciones desde el móvil
 | Frontend | React 18 + Vite 6 |
 | Base de datos | Firebase Firestore (tiempo real) |
 | Autenticación | Firebase Auth |
-| Archivos (audio/vídeo) | Firebase Storage + compresión en navegador con [Mediabunny](https://mediabunny.dev) |
+| Archivos (audio/vídeo) | Google Drive de la escuela vía Google Apps Script + compresión en navegador con [Mediabunny](https://mediabunny.dev) |
 | Hosting | GitHub Pages |
 | CI/CD | GitHub Actions |
 
-La app no tiene backend propio. Firestore y Auth funcionan en el plan gratuito Spark. **Firebase Storage requiere el plan Blaze** (pago por uso) para buckets `*.firebasestorage.app`, pero incluye 5 GB de almacenamiento y 100 GB/mes de descarga gratis; con el volumen de un coro el coste es 0 €. Recomendado: crear una alerta de presupuesto de 1 € en Google Cloud.
+Todo funciona gratis y sin tarjeta. Firestore y Auth usan el plan gratuito Spark de Firebase. Los audios y vídeos se guardan en el Google Drive de una cuenta de Gmail de la escuela (15 GB). La app los sube a través de un pequeño script de Google Apps Script que comprueba el login del admin, así que no hay ninguna credencial de Drive en el código público. Instrucciones de despliegue en [apps-script/README.md](apps-script/README.md).
 
 ### Compresión de archivos
 
@@ -41,7 +41,7 @@ Al subir un archivo, el navegador del admin lo recomprime antes de enviarlo (`sr
 - **Audio** → MP3 a 96 kbps
 - **Vídeo** → MP4 (H.264 + AAC), lado corto máx. 720 px, ~1,2 Mbps
 
-Si el navegador no puede comprimir o el resultado no ahorra al menos un 10 %, se sube el original. Límite por archivo: 60 MB (ver `storage.rules`).
+Si el navegador no puede comprimir o el resultado no ahorra al menos un 10 %, se sube el original. Los archivos se envían en trozos de 8 MB. Límite por archivo: 200 MB (`MAX_FILE_BYTES` en `apps-script/Code.gs`).
 
 ## Configuración para desarrollo local
 
@@ -70,8 +70,8 @@ npm run dev
 
 ## Despliegue
 
-El despliegue a GitHub Pages se dispara automáticamente al hacer push a `main` mediante GitHub Actions. Requiere configurar los **Repository Secrets** del repositorio con los valores de Firebase (ver `.github/workflows/deploy.yml`).
+El despliegue a GitHub Pages se dispara automáticamente al hacer push a `main` mediante GitHub Actions. Requiere configurar los **Repository Secrets** del repositorio con los valores de Firebase y `DRIVE_SCRIPT_URL` (ver `.github/workflows/deploy.yml`).
 
 ## Seguridad
 
-Las reglas de Firestore (`firestore.rules`) y Storage (`storage.rules`) permiten lectura pública y escritura solo a usuarios autenticados. Las reglas de Storage además limitan a audio/vídeo y 60 MB por archivo. Hay que publicarlas desde la consola de Firebase (Storage → Reglas) o con `firebase deploy --only storage`. La clave de administración es gestionada por Firebase Authentication y nunca se almacena en el código fuente.
+Las reglas de Firestore (`firestore.rules`) permiten lectura pública y escritura solo a usuarios autenticados. El script de Drive (`apps-script/Code.gs`) solo acepta peticiones con un ID token de Firebase válido del admin, solo admite audio/vídeo y solo borra archivos de su carpeta. La clave de administración es gestionada por Firebase Authentication y nunca se almacena en el código fuente.

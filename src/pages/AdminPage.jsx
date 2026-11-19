@@ -11,7 +11,7 @@ import HelpModal from '../components/HelpModal'
 import guiaAdmin from '../../GUIA-ADMIN.md?raw'
 import { formatBytes } from '../services/media'
 
-const STORAGE_QUOTA = 5 * 1024 * 1024 * 1024 // 5 GB gratis en Firebase Storage
+const STORAGE_QUOTA = 15 * 1024 * 1024 * 1024 // 15 GB de la cuenta de Google de la escuela
 
 export default function AdminPage() {
   const [tab, setTab] = useState('songs')

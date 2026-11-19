@@ -1,5 +1,4 @@
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage'
-import { storage } from '../firebase'
+import { auth } from '../firebase'
 
 // ── Ajustes de compresión ──────────────────────────────────
 // Audio: MP3 a 96 kbps (de sobra para ensayar; un MP3 típico de 128-320 kbps baja un 25-70 %)
@@ -7,7 +6,7 @@ import { storage } from '../firebase'
 const AUDIO_BITRATE = 96_000
 const VIDEO_BITRATE = 1_200_000
 const VIDEO_MAX_SHORT_SIDE = 720
-export const MAX_UPLOAD_BYTES = 60 * 1024 * 1024 // debe coincidir con storage.rules
+export const MAX_UPLOAD_BYTES = 200 * 1024 * 1024 // debe coincidir con MAX_FILE_BYTES en apps-script/Code.gs
 
 export function mediaKind(file) {
   if (file.type.startsWith('audio/')) return 'audio'
@@ -98,44 +97,73 @@ export async function compressMedia(file, onProgress = () => {}) {
   }
 }
 
-/**
- * Sube un blob a Storage (carpeta media/) e informa del progreso (0-1).
- * @returns {Promise<{ name, url, path, size, contentType, kind }>}
- */
-export function uploadMedia({ blob, name, contentType }, onProgress = () => {}) {
-  const safeName = name.replace(/[^\w.\-]+/g, '_')
-  const path = `media/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`
-  const task = uploadBytesResumable(ref(storage, path), blob, {
-    contentType,
-    cacheControl: 'public, max-age=31536000',
+// ── Subida a Google Drive vía Apps Script (ver apps-script/README.md) ──
+const SCRIPT_URL = import.meta.env.VITE_DRIVE_SCRIPT_URL
+// Múltiplo de 256 KiB (lo exige Drive). En base64 ocupa ~11 MB por petición,
+// muy por debajo del límite de Apps Script.
+const CHUNK_BYTES = 8 * 1024 * 1024
+
+async function callScript(payload) {
+  if (!SCRIPT_URL) throw new Error('Falta configurar VITE_DRIVE_SCRIPT_URL')
+  const user = auth.currentUser
+  if (!user) throw new Error('Sesión caducada, vuelve a entrar')
+  const idToken = await user.getIdToken()
+  // text/plain evita la petición previa CORS, que Apps Script no responde
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ ...payload, idToken }),
   })
+  if (!res.ok) throw new Error(`Error del servidor de archivos (${res.status})`)
+  const data = await res.json()
+  if (data.error) throw new Error(data.error)
+  return data
+}
+
+function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
-    task.on(
-      'state_changed',
-      snap => onProgress(snap.bytesTransferred / snap.totalBytes),
-      reject,
-      async () => {
-        const url = await getDownloadURL(task.snapshot.ref)
-        resolve({
-          name,
-          url,
-          path,
-          size: blob.size,
-          contentType,
-          kind: contentType.startsWith('video/') ? 'video' : 'audio',
-        })
-      }
-    )
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result).split(',')[1] || '')
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(blob)
   })
 }
 
-export async function deleteMediaFiles(paths) {
-  await Promise.all(
-    paths.map(p =>
-      deleteObject(ref(storage, p)).catch(err => {
-        // Si ya no existe, no pasa nada
-        if (err?.code !== 'storage/object-not-found') console.warn('Error borrando', p, err)
-      })
-    )
-  )
+export const driveUrl = id => `https://drive.google.com/file/d/${id}/preview`
+
+/**
+ * Sube un blob al Drive de la escuela en trozos e informa del progreso (0-1).
+ * `path` guarda el id del archivo en Drive (se usa para borrarlo).
+ * @returns {Promise<{ name, url, path, size, contentType, kind }>}
+ */
+export async function uploadMedia({ blob, name, contentType }, onProgress = () => {}) {
+  const total = blob.size
+  const { session } = await callScript({ action: 'start', name, contentType, size: total })
+  let id = null
+  for (let offset = 0; offset < total; offset += CHUNK_BYTES) {
+    const chunk = blob.slice(offset, Math.min(offset + CHUNK_BYTES, total))
+    const data = await blobToBase64(chunk)
+    const res = await callScript({ action: 'chunk', session, offset, total, contentType, data })
+    onProgress(Math.min(offset + chunk.size, total) / total)
+    if (res.done) id = res.id
+  }
+  if (!id) throw new Error('La subida no terminó correctamente')
+  return {
+    name,
+    url: driveUrl(id),
+    path: id,
+    size: total,
+    contentType,
+    kind: contentType.startsWith('video/') ? 'video' : 'audio',
+  }
+}
+
+export async function deleteMediaFiles(ids) {
+  if (!ids?.length) return
+  try {
+    await callScript({ action: 'delete', ids })
+  } catch (err) {
+    // No bloquea el guardado: como mucho queda un archivo huérfano en Drive
+    console.warn('Error borrando archivos de Drive', ids, err)
+  }
 }
